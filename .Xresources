@@ -1,0 +1,126 @@
+!Colors
+#define t_background        #002451
+#define t_current_line      #00346e
+#define t_selection      	#003f8e
+#define t_foreground      	#ffffff
+#define t_comment	     	#7285b7
+#define t_red		     	#ff9da4
+#define t_orange	     	#ffc58f
+#define t_yellow        	#ffeead
+#define t_green	        	#d1f1a9
+#define t_aqua	        	#99ffff
+#define t_blue	        	#bbdaff
+#define t_purple        	#ebbbff
+
+
+*.foreground:   t_foreground
+*.background:   t_background
+*.cursorColor:  #aeafad
+
+! Black / Grey
+*.color0:       #000000
+*.color8:       #666666
+
+! Red / Bright Red
+*.color1:       t_red
+*.color9:       #FF3334
+
+! Green + Bright Green
+*.color2:       t_green
+*.color10:      #9ec400
+
+! Yellow (Orange) + Bright Yellow (Yellow)
+*.color3:       t_orange
+*.color11:      t_yellow
+
+! Blue + Bright Blue
+*.color4:       t_blue
+*.color12:      t_blue
+
+! Magenta (Purple) + Bright Magenta
+*.color5:       t_purple
+*.color13:      #b777e0
+
+! Cyan (Aqua) + Bright Cyan
+*.color6:       t_aqua
+*.color14:      #54ced6
+
+! Light Grey (Selection) + White (Current Line)
+*.color7:       t_selection
+*.color15:      t_current_line
+
+! XTerm
+
+! General settings
+XTerm*geometry: 80x24
+XTerm*saveLines: 1024
+XTerm*scrollBar: False
+XTerm*loginshell: False
+XTerm*cursorBlink: False
+
+! Fonts and Encoding
+XTerm*utf8: True
+XTerm*locale: True
+XTerm*utf8Title: True
+XTerm*renderFont: True
+XTerm*preeditType: Root
+XTerm*xftAntialias: true
+XTerm*faceName: Meslo:size=13
+
+! Trim trailing spaces
+XTerm*trimSelection: true
+
+! Fix alt-key inputting
+XTerm*eightBitInput: false
+XTerm*metaSendsEscape: true
+
+! Copy and paste with clipboard
+XTerm*translations: #override \
+	Ctrl Shift <KeyPress> C: copy-selection(CLIPBOARD) \n\
+	Ctrl Shift <KeyPress> V: insert-selection(CLIPBOARD)
+
+! Allow selecting email/url by double-click
+XTerm*charClass: 33:48,37-38:48,45-47:48,64:48,58:48,126:48,61:48,63:48,43:48,35:48
+
+! Xclock colors.
+XClock*foreground: #807A86
+XClock*background: #1D1C25
+XClock*majorColor:  rgba:80/7a/86/ff
+XClock*minorColor:  rgba:80/7a/86/ff
+XClock*hourColor:   rgba:80/7a/86/ff
+XClock*minuteColor: rgba:80/7a/86/ff
+XClock*secondColor: rgba:80/7a/86/ff
+
+! Man pages colors
+
+*VT100.colorBDMode:                  true
+*VT100.colorBD:                      red
+*VT100.colorULMode:                  true
+*VT100.colorUL:                      cyan   
+*VT100.veryBoldColors:               6
+
+! Cursor theme
+Xcursor.theme: DMZ
+
+!! xst/st specific settings
+st.termname:    st-256color
+!st.font:        scientifica:size=7:hinting=full:antialias=false
+st.font:        OfficeCodePro:size=7:hinting=full:antialias=false
+st.cwscale:     1.1
+st.chscale:     1.1
+st.bellvolume:  0
+st.borderpx:    10px
+
+UXTerm*background:	#130A07
+UXTerm*cursorColor:	#F3E9D5
+UXTerm*foreground:	#F3E9D5
+
+/* dzen2 */
+dzen2.font: xft:Arimo:size=11
+
+emacs.font:                 Hack-12
+emacs.paneFont:             Hack-12
+emacs.pointerColor:         white
+emacs.scrollBarWidth:       0
+emacs.useXIM:               true
+emacs.verticalScrollBars:   false
