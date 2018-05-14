@@ -4,6 +4,8 @@
 
 (setq debug-on-error t)
 
+(require 'color-theme-sanityinc-tomorrow)
+
 (defvar current-user
   (getenv
    (if (equal system-type 'windows-nt) "USERNAME" "USER")))
