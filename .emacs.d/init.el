@@ -1,3 +1,37 @@
+(require 'package)
+(add-to-list 'package-archives'("melpa-stable" . "https://stable.melpa.org/packages/"))
+(add-to-list 'package-archives'("org"          . "https://orgmode.org/elpa/"))
+
+(setq debug-on-error t)
+
+(defvar current-user
+  (getenv
+   (if (equal system-type 'windows-nt) "USERNAME" "USER")))
+
+(message "Welcome back %s!" current-user)
+
+(setq load-prefer-newer t)
+
+(setq gc-cons-threshold 50000000)
+
+(setq large-file-warning-threshold 100000000)
+
+(setq fancy-splash-image '~/.emacs.d/assets/logo.svg')
+
+(setq user-mail-address "jeremy.ottley@gmail.com")
+
+(setq display-time-24hr-format t)
+(setq display-time-and-date t)
+(setq display-time-interval 10)
+(display-time-mode t)
+
+(setq tab-width 2)
+
+(scroll-bar-mode -1)
+;;; (load-theme 'tomorrow-night-blue-theme t)
+
+;;;
+
 ;; Change the custom file, so "custom-set-variables" does not clutter up this file.
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (when (file-exists-p custom-file)
