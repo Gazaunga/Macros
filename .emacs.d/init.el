@@ -87,3 +87,13 @@
 	  (unless (cl-search "." dir)
 	    (load-directory (concat user-emacs-directory "config/" dir))))
 	(directory-files (concat user-emacs-directory "config")))
+
+;;; ;;; ;;;
+
+
+;; ORG and main configurations
+
+(use-package org
+  :ensure org-plus-contrib
+  :pin org
+  :config (org-babel-load-file (concat user-emacs-directory "README.org")))
