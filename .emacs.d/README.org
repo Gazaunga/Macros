@@ -1,0 +1,333 @@
+* EXWM - GNU Emacs as Windows Manager -
+** EXWM packages
+#+BEGIN_SRC emacs-lisp :tangle yes
+(use-package cl-generic
+  :demand)
+
+(use-package xelb)
+
+(use-package dmenu
+  :diminish
+  :defer 4
+  :config
+  (setq dmenu--history-list nil)
+  (startup-apps))
+(use-package exwm
+  :init
+  (require 'exwm-config)
+  :config
+  ;; Do not forget to enable EXWM. It will start by itself when things are ready.)
+  (exwm-enable))
+#+END_SRC
+
+** EXWM custom definitions
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+;; [DEFINITIONS]
+
+(require 'exwm-systemtray)
+(exwm-systemtray-enable)
+
+;; disable dialog boxes since they are unusable in exwm
+(setq use-dialog-box nil)
+
+;; Allow switching buffers between workspaces
+(setq exwm-workspace-show-all-buffers t)
+(setq exwm-layout-show-all-buffers t)
+
+  ;;; Allow non-floating resizing with mouse.
+(setq window-divider-default-bottom-width 2
+      window-divider-default-right-width 2)
+(window-divider-mode)
+
+;; N Workplaces
+(setq exwm-workspace-number 4)
+
+;; ;; You can hide the minibuffer and echo area when they're not used, by
+;; ;; uncommenting the following line.
+;; (setq exwm-workspace-minibuffer-position 'bottom)
+
+;; (symbol-value 'are-workspaces-loaded)
+
+;; [FUNCTIONS]
+
+  ;;; Check for start-up errors. See ~/.profile.
+(let ((error-logs (directory-files "~" t "errors.*log$")))
+  (when error-logs
+    (warn "Error during system startup.  See %s." (mapconcat 'identity error-logs ", "))
+    (when (daemonp)
+      ;; Non-daemon Emacs already brings up the *Warning* buffer.
+      (setq initial-buffer-choice
+            (lambda () (get-buffer "*Warnings*"))))))
+
+  ;;; Some programs such as 'emacs' are better off being started in char-mode.
+(defun gazbit/exwm-start-in-char-mode ()
+  (when (string= exwm-instance-name "emacs")
+    (exwm-input-release-keyboard (exwm--buffer->id (window-buffer)))))
+(add-hook 'exwm-manage-finish-hook 'gazbit/exwm-start-in-char-mode)
+
+;; ;; set global var to track if workspaces have been loaded
+(defvar are-workspaces-loaded 0
+  "are workspaces loaded? start out with value of 0.")
+
+;; ;; quick swtiching between workspaces
+(defvar exwm-toggle-workspace 0
+  "previously selected workspace. used with `exwm-jump-to-last-exwm'.")
+
+
+(add-hook 'exwm-update-class-hook
+          (lambda ()
+            (unless (or (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                        (string= "gimp" exwm-instance-name))
+              (exwm-workspace-rename-buffer exwm-class-name))))
+(add-hook 'exwm-update-title-hook
+          (lambda ()
+            (when (or (not exwm-instance-name)
+                      (string-prefix-p "sun-awt-X11-" exwm-instance-name)
+                      (string= "gimp" exwm-instance-name))
+              (exwm-workspace-rename-buffer exwm-title))))
+
+(defvar exwm-workspace-switch-wrap t
+  "Whether `exwm-workspace-next' and `exwm-workspace-prev' should wrap.")
+
+(defun exwm-workspace-next ()
+  "Switch to next exwm-workspaceective (to the right)."
+  (interactive)
+  (let* ((only-workspace? (equal exwm-workspace-number 1))
+         (overflow? (= exwm-workspace-current-index
+                       (1- exwm-workspace-number))))
+    (cond
+     (only-workspace? nil)
+     (overflow?
+      (when exwm-workspace-switch-wrap
+        (exwm-workspace-switch 0)))
+     (t (exwm-workspace-switch  (1+ exwm-workspace-current-index))))))
+
+(defun exwm-workspace-prev ()
+  "Switch to next exwm-workspaceective (to the right)."
+  (interactive)
+  (let* ((only-workspace? (equal exwm-workspace-number 1))
+         (overflow? (= exwm-workspace-current-index 0)))
+    (cond
+     (only-workspace? nil)
+     (overflow?
+      (when exwm-workspace-switch-wrap
+        (exwm-workspace-switch (1- exwm-workspace-number))))
+     (t (exwm-workspace-switch  (1- exwm-workspace-current-index))))))
+
+;; Quick swtiching between workspaces
+(defvar exwm-toggle-workspace 0
+  "Previously selected workspace. Used with `exwm-jump-to-last-exwm'.")
+
+(defun exwm-jump-to-last-exwm ()
+  (interactive)
+  (exwm-workspace-switch exwm-toggle-workspace))
+
+(defadvice exwm-workspace-switch (before save-toggle-workspace activate)
+  (setq exwm-toggle-workspace exwm-workspace-current-index))
+
+(defun reboot-systemctl ()
+  "systemD: reboot system"
+  (interactive)
+  (start-process-shell-command "systemctl reboot" nil "systemctl reboot"))
+
+(defun poweroff-systemctl ()
+  (interactive)
+  (start-process-shell-command "systemctl poweroff" nil "systemctl poweroff"))
+
+(defun pulseaudio-fix ()
+  (interactive)
+  (start-process-shell-command "killall pulseaudio & pulseaudio &" nil "killall pulseaudio & pulseaudio &"))
+
+(defun popcorn ()
+  (interactive)
+  (start-process-shell-command "cd ~/Temps/pop/ || exit && ./Popcorn-Time" nil "cd ~/Temps/pop/ || exit && ./Popcorn-Time"))
+
+(defun background-shell-command (command)
+  (interactive (list (read-shell-command "$ ")))
+  (with-temp-buffer
+    (async-shell-command command (current-buffer))))
+
+(defun startup-apps ()
+  "Open some few apps in specific workspaces"
+  (interactive)
+  ;; (exwm-workspace-switch 1)
+  (start-process-shell-command "iceweasel" nil "iceweasel")
+  ;; (sleep-for 2)
+  ;; (exwm-workspace-switch 3)
+  (start-process-shell-command "steam" nil "steam"))
+
+#+END_SRC
+
+** EXWM keybindings
+#+BEGIN_SRC emacs-lisp :tangle yes
+
+;; Workspaces
+(exwm-input-set-key (kbd "s-n") 'exwm-workspace-next)
+(exwm-input-set-key (kbd "s-p") 'exwm-workspace-prev)
+
+(exwm-input-set-key (kbd "<s-tab>") 'exwm-jump-to-last-exwm)
+
+;; + set shortcuts to switch to a certain workspace.
+(exwm-input-set-key (kbd "s-1")
+                    (lambda () (interactive) (exwm-workspace-switch 0)))
+(exwm-input-set-key (kbd "s-2")
+                    (lambda () (interactive) (exwm-workspace-switch 1)))
+(exwm-input-set-key (kbd "s-3")
+                    (lambda () (interactive) (exwm-workspace-switch 2)))
+
+;; + bind a key to switch workspace interactively
+;; (exwm-input-set-key (kbd "s-W") 'exwm-workspace-switch)
+
+;; + bind a key to switch workspace interactively
+(exwm-input-set-key (kbd "s-m") 'exwm-workspace-move-window)
+
+;; Last workspace visited
+(exwm-input-set-key (kbd "<s-tab>") #'exwm-jump-to-last-exwm)
+
+;; restart
+;; (exwm-input-set-key (kbd "s-r") 'exwm-reset)
+;; (exwm-input-set-key (kbd "s-R") 'exwm-restart)
+
+(exwm-input-set-key (kbd "s-F") 'exwm-layout-toggle-fullscreen)
+(exwm-input-set-key (kbd "s-T") 'exwm-floating-toggle-floating)
+
+;; exwm mode-line
+;; (exwm-input-set-key (kbd "s-<") #'exwm-layout-hide-mode-line)
+;; (exwm-input-set-key (kbd "s->") #'exwm-layout-show-mode-line)
+;; (exwm-input-set-key (kbd "s-M") 'exwm-layout-toggle-mode-line)
+;; (exwm-input-set-key (kbd "s-u") 'exwm-input-toggle-keyboard)
+
+;; [EMACS FEATURES]
+
+(exwm-input-set-key (kbd "s-x") 'counsel-M-x) ;; M-x
+
+;; [BUFFERS]
+(exwm-input-set-key (kbd "s-b") 'ivy-switch-buffer)
+(exwm-input-set-key (kbd "s-i") 'ibuffer)
+(exwm-input-set-key (kbd "s-f") 'counsel-find-file)
+(exwm-input-set-key (kbd "s-K") (lambda () (interactive) (kill-buffer))) ;; kill visible buffer
+;; (exwm-input-set-key (kbd "s-K") 'kill-this-buffer)
+
+;; [TERM]
+(exwm-input-set-key (kbd "s-v") 'multi-term)
+(exwm-input-set-key (kbd "s-V") 'eshell)
+
+;; [WINDOWS]
+
+;; jump to buffers with s-[hjkl]
+(exwm-input-set-key (kbd "s-h") 'windmove-left)
+(exwm-input-set-key (kbd "s-j") 'windmove-down)
+(exwm-input-set-key (kbd "s-k") 'windmove-up)
+(exwm-input-set-key (kbd "s-l") 'windmove-right)
+
+(exwm-input-set-key (kbd "s-[") 'shrink-window-horizontally)
+(exwm-input-set-key (kbd "s-{") 'shrink-window)
+(exwm-input-set-key (kbd "s-]") 'enlarge-window-horizontally)
+(exwm-input-set-key (kbd "s-}") 'enlarge-window)
+
+(exwm-input-set-key (kbd "s-z") 'dmenu)
+
+;;Emms
+(exwm-input-set-key (kbd "s-a") 'emms-player-mpd-previous)
+(exwm-input-set-key (kbd "s-d") 'emms-player-mpd-next)
+(exwm-input-set-key (kbd "s-W") 'emms-volume-raise)
+(exwm-input-set-key (kbd "s-S") 'emms-volume-lower)
+(exwm-input-set-key (kbd "s-E") 'emms-smart-browse)
+(exwm-input-set-key (kbd "s-SPC") 'emms-pause)
+
+  ;;; Pulseaudio
+(when (require 'pulseaudio-control nil t)
+  (exwm-input-set-key (kbd "s-w") 'pulseaudio-control-increase-volume)
+  (exwm-input-set-key (kbd "s-s") 'pulseaudio-control-decrease-volume)
+  (exwm-input-set-key (kbd "s-e") 'pulseaudio-control-toggle-current-sink-mute))
+
+
+(exwm-input-set-key (kbd "s-g") 'narrow-or-widen-dwim)
+
+;; [Emacs config bindings]
+(exwm-input-set-key (kbd "s-r") (lambda () (interactive) (find-file "~/.emacs.d/README.org")))
+(exwm-input-set-key (kbd "s-R") (lambda () (interactive) (find-file "~/.emacs.d/init.el")))
+
+
+;; [EXTERNAL APPLICATIONS]
+
+(exwm-input-set-key (kbd "s-P")
+                    #'background-shell-command)
+
+(exwm-input-set-key (kbd "s-c")
+                    (lambda ()
+                      (interactive)
+                      (start-process-shell-command "slock" nil "slock")))
+
+;; (exwm-input-set-key (kbd "s-v")
+;;                     (lambda ()
+;;                       (interactive)
+;;                       (start-process-shell-command "st" nil "st")))
+
+
+;; Scrot
+(exwm-input-set-key (kbd "<print>") (lambda () (interactive) (start-process-shell-command "scrot" nil "scrot ~/Pictures/shot-$(date -Iseconds | cut -d'+' -f1).png")))
+
+;; [LEGACY]
+
+;; alsamixer
+
+;; (exwm-input-set-key (kbd "s-w")
+;;                     (lambda () (interactive) (shell-command "amixer set Master 5%+")))
+;; (exwm-input-set-key (kbd "s-s")
+;;                     (lambda () (interactive) (shell-command "amixer set Master 5%-")))
+;; (exwm-input-set-key (kbd "s-e")
+;;                     (lambda () (interactive) (shell-command "amixer set Master 1+ toggle")))
+
+;; Screen Brightness
+;; (exwm-input-set-key (kbd "<XF86MonBrightnessDown>") (lambda () (interactive) (shell-command "light -U 5; light")))
+;; (exwm-input-set-key (kbd "<XF86MonBrightnessUp>") (lambda () (interactive) (shell-command "light -A 5; light")))
+
+;; [Key siminulation]
+
+;; ;; Line-editing shortcuts
+;; (exwm-input-set-simulation-keys
+;;  '(([?\C-b] . left)
+;;    ([?\C-f] . right)
+;;    ([?\M-f] . C-right)
+;;    ([?\M-b] . C-left)
+;;    ([?\C-y] . S-insert)
+;;    ([?\C-p] . up)
+;;    ([?\C-n] . down)
+;;    ([?\C-a] . home)
+;;    ([?\C-e] . end)
+;;    ([?\M-v] . prior)
+;;    ([?\C-v] . next)
+;;    ([?\C-d] . delete)
+;;    ([?\C-k] . (S-end delete))))
+
+;; The following example demonstrates how to set a key binding only available
+;; in line mode. It's simply done by first push the prefix key to
+;; ;; `exwm-input-prefix-keys' and then add the key sequence to `exwm-mode-map'.
+;; ;; The example shorten 'C-c x q' to 'C-q'.
+;; (push ?\C-q exwm-input-prefix-keys)
+;; (define-key exwm-mode-map [?\C-q] 'exwm-input-send-next-key)
+;; ;; M-m leader, sorry Space Folks
+;; (push ?\M-m exwm-input-prefix-keys)
+;; ;; Universal Get-me-outta-here
+;; (push ?\C-g exwm-input-prefix-keys)
+;; ;; Universal Arguments
+;; (push ?\C-u exwm-input-prefix-keys)
+;; (push ?\C-0 exwm-input-prefix-keys)
+;; (push ?\C-1 exwm-input-prefix-keys)
+;; (push ?\C-2 exwm-input-prefix-keys)
+;; (push ?\C-3 exwm-input-prefix-keys)
+;; (push ?\C-4 exwm-input-prefix-keys)
+;; (push ?\C-5 exwm-input-prefix-keys)
+;; (push ?\C-6 exwm-input-prefix-keys)
+;; (push ?\C-7 exwm-input-prefix-keys)
+;; (push ?\C-8 exwm-input-prefix-keys)
+;; (push ?\C-9 exwm-input-prefix-keys)
+;; ;; C-c x, C-x are needed for copying and pasting
+;; (delete ?\C-x exwm-input-prefix-keys)
+;; (delete ?\C-c x exwm-input-prefix-keys)
+;; ;; We can use `M-m h' to access help
+;; (delete ?\C-h exwm-input-prefix-keys)
+
+#+END_SRC
