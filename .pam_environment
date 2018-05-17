@@ -1,0 +1,5 @@
+VISUAL="emacsclient"
+EDITOR="emacsclient"
+ALT_EDITOR="emacsclient -a "" -t"
+BROWSER="qutebrowser"
+TERMINAL="xterm"
