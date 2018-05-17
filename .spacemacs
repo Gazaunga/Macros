@@ -37,12 +37,22 @@ values."
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      helm
-     auto-completion
+     (auto-completion
+            :variables
+            auto-completion-enable-snippets-in-popup t
+            auto-completion-return-key-behavior nil
+            auto-completion-tab-key-behavior 'cycle
+            auto-completion-private-snippets-directory "~/.spacemacs.d/snippets/"
+            auto-completion-enable-help-tooltip 'manual
+            :disabled-for erc)
      better-defaults
      emacs-lisp
      git
      markdown
-     org
+    (org :variables
+            org-enable-github-support t
+            org-enable-reveal-js-support t
+     )
      (shell :variables
              shell-default-height 30
              shell-default-position 'bottom
@@ -53,7 +63,7 @@ values."
      spell-checking
      syntax-checking
      typography
-     ibuffer
+     (ibuffer :variables ibuffer-group-buffers-by nil)
      ruby-on-rails
      bibtex
      go
